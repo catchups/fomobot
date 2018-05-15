@@ -1,16 +1,22 @@
 package com.leafCat.coin.controlloer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.leafCat.coin.svc.CoinService;
@@ -23,10 +29,77 @@ public class CoinController {
 	
 	private static Logger logger = Logger.getLogger(CoinController.class);
 
+	
+	String[] testSymbol = {"XVG","EOSDAC","WAX","LOOM","EOS","SALT","ADT"};
+	
+	List<Symbol> symbolList = new ArrayList<Symbol>();
+	
+	public CoinController() {
+		for (int i = 0; i < testSymbol.length; i++) {
+			symbolList.add(new Symbol(testSymbol[i], 0));
+		}
+	}
+	
+	class Symbol{
+		String name;
+		int status;
+		
+		public Symbol(String name, int status) {
+			this.name = name;
+			this.status = status;
+		}
+
+	}
+	
+	
 	@Autowired
 	CoinService coinService;
-	
+
 	@Scheduled(cron="0/3 * * * * ?")
+	public void listingBot(){
+		
+
+		
+		// RestTemplate 에 MessageConverter 세팅
+		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+		converters.add(new FormHttpMessageConverter());
+		converters.add(new StringHttpMessageConverter());
+		
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setMessageConverters(converters);
+		
+		for (int i = 0; i < symbolList.size(); i++) {
+			
+			String thisSymbol = symbolList.get(i).name;
+			
+			if (symbolList.get(i).status == 0 ) {
+				try {
+					double price_upbit = coinService.getCoinInfo(3, thisSymbol);
+					System.out.println("0000000" );
+					String result = restTemplate.getForObject("https://api.telegram.org/bot577023742:AAEH0SgepYl3XxRvNudGvlEVoFPzMWAXofg/sendMessage?chat_id=-1001317239552&text=upbit " + thisSymbol  + " 원화 API 감지", String.class);
+					symbolList.get(i).status = 1;
+				} catch (HttpClientErrorException e) {
+					continue;
+					// TODO: handle exception
+				}
+			}
+			
+			if(symbolList.get(i).status == 1) {
+				try {
+					double price_upbit = coinService.getCoinInfo(3, thisSymbol);
+					System.out.println("11111111");
+				} catch (HttpClientErrorException e) {
+					String result = restTemplate.getForObject("https://api.telegram.org/bot577023742:AAEH0SgepYl3XxRvNudGvlEVoFPzMWAXofg/sendMessage?chat_id=-1001317239552&text=upbit " + thisSymbol  + " 원화 API 사라짐", String.class);
+					symbolList.get(i).status = 0;
+					continue;
+					// TODO: handle exception
+				}
+			}
+		}
+	};
+
+	
+//	@Scheduled(cron="0/3 * * * * ?")
 	public void priceBot(){
 		
 		double price_bithumb = coinService.getCoinInfo(2, "EOS");
@@ -42,7 +115,7 @@ public class CoinController {
 	
 	
 	
-	@Scheduled(cron="0/6 * * * * ?")
+//	@Scheduled(cron="0/6 * * * * ?")
 	public void BithumbAPICall(){
 //		DecimalFormat df = new DecimalFormat("#.#");
 		//System.out.println(df.format(coinService.getCoinInfo(1, "BTC")));
