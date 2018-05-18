@@ -3,7 +3,7 @@ package com.leafCat.coin.jsonVO;
 import com.google.gson.annotations.SerializedName;
 
 public class UpbitVO {
-	@SerializedName("tradePrice")
+	@SerializedName("trade_price")
 	double price;
 
 	public double getPrice() {
@@ -14,5 +14,5 @@ public class UpbitVO {
 		this.price = price;
 	}
 	
-
+	
 }

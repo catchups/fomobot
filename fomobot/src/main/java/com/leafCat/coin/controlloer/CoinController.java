@@ -7,19 +7,16 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.leafCat.coin.svc.CoinService;
+import com.leafCat.coin.svc.TelegramApiService;
 import com.leafCat.coin.vo.CoinVO;
 import com.leafCat.coin.vo.ExchangeVO;
 
@@ -33,6 +30,7 @@ public class CoinController {
 	String[] testSymbol = {"XVG","EOSDAC","WAX","LOOM","EOS","SALT","ADT"};
 	
 	List<Symbol> symbolList = new ArrayList<Symbol>();
+	
 	
 	public CoinController() {
 		for (int i = 0; i < testSymbol.length; i++) {
@@ -48,35 +46,40 @@ public class CoinController {
 			this.name = name;
 			this.status = status;
 		}
-
 	}
 	
+	@Autowired
+	TelegramApiService telegramApiService;
 	
 	@Autowired
 	CoinService coinService;
-
-	@Scheduled(cron="0/3 * * * * ?")
+	
+	@Scheduled(cron="0/5 * * * * ?")
+	public void calCoinGap(){
+		double price_bithumb = coinService.getCoinInfo(2, "EOS");
+		double price_upbit = coinService.getCoinInfo(3, "EOS");
+		
+		double dif = price_bithumb - price_upbit; 
+		
+		System.out.println("빗썸 : " + price_bithumb + " / 업빗 : " + price_upbit );
+		System.out.println("차이 : " + dif );
+	}
+	
+	
+//	@Scheduled(cron="0/3 * * * * ?")
 	public void listingBot(){
 		
 
-		
-		// RestTemplate 에 MessageConverter 세팅
-		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
-		converters.add(new FormHttpMessageConverter());
-		converters.add(new StringHttpMessageConverter());
-		
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.setMessageConverters(converters);
-		
 		for (int i = 0; i < symbolList.size(); i++) {
 			
 			String thisSymbol = symbolList.get(i).name;
 			
 			if (symbolList.get(i).status == 0 ) {
 				try {
-					double price_upbit = coinService.getCoinInfo(3, thisSymbol);
+					coinService.getCoinInfo(3, thisSymbol);
 					System.out.println("0000000" );
-					String result = restTemplate.getForObject("https://api.telegram.org/bot577023742:AAEH0SgepYl3XxRvNudGvlEVoFPzMWAXofg/sendMessage?chat_id=-1001317239552&text=upbit " + thisSymbol  + " 원화 API 감지", String.class);
+					telegramApiService.sendMSG("upbit " + thisSymbol  + " 원화 API 감지");
+					
 					symbolList.get(i).status = 1;
 				} catch (HttpClientErrorException e) {
 					continue;
@@ -86,10 +89,9 @@ public class CoinController {
 			
 			if(symbolList.get(i).status == 1) {
 				try {
-					double price_upbit = coinService.getCoinInfo(3, thisSymbol);
-					System.out.println("11111111");
+					coinService.getCoinInfo(3, thisSymbol);
 				} catch (HttpClientErrorException e) {
-					String result = restTemplate.getForObject("https://api.telegram.org/bot577023742:AAEH0SgepYl3XxRvNudGvlEVoFPzMWAXofg/sendMessage?chat_id=-1001317239552&text=upbit " + thisSymbol  + " 원화 API 사라짐", String.class);
+					telegramApiService.sendMSG("upbit " + thisSymbol  + " 원화 API 감지");
 					symbolList.get(i).status = 0;
 					continue;
 					// TODO: handle exception
@@ -137,7 +139,7 @@ public class CoinController {
 		callUpdateService(coinVO, "BCH"); //BCH
 	}
 	
-	@Scheduled(cron="0/6 * * * * ?")
+//	@Scheduled(cron="0/6 * * * * ?")
 	public void upbitAPICall(){
 		CoinVO coinVO = new CoinVO();
 		coinVO.setMarketId(3);
@@ -157,7 +159,7 @@ public class CoinController {
 		callUpdateService(coinVO, "BCH", "BCC"); //BCH -> upbit만 BCC
 	}
 	
-	@Scheduled(cron="0 0/1 * 1/1 * ?")
+//	@Scheduled(cron="0 0/1 * 1/1 * ?")
 	public void bitfinexAPICall(){
 		CoinVO coinVO = new CoinVO();
 		coinVO.setMarketId(1);

@@ -21,7 +21,7 @@ public class Application extends SpringBootServletInitializer{
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
-		logger.info("========================== Server Sterted ================================");
+		logger.info("========================== Server Sterted 2================================");
 		
 		// RestTemplate 에 MessageConverter 세팅
 		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();

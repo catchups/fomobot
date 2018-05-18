@@ -55,7 +55,8 @@ public class CoinService {
 		}
 		//upbit
 		else if (marketId == 3) {
-			String result = restTemplate.getForObject("https://crix-api-endpoint.upbit.com/v1/crix/candles/minutes/30?code=CRIX.UPBIT.KRW-"+coinSymbol+"&count=1", String.class);
+		//	String result = restTemplate.getForObject("https://crix-api-endpoint.upbit.com/v1/crix/candles/minutes/30?code=CRIX.UPBIT.KRW-"+coinSymbol+"&count=1", String.class);
+			String result = restTemplate.getForObject("https://api-beta.upbit.com/v1/ticker?markets=KRW-"+coinSymbol, String.class);
 			result = result.replace("[", "");
 			result = result.replace("]", "");
 			
