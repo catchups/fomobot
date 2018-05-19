@@ -9,14 +9,14 @@ import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 import com.leafCat.coin.jsonVO.BithumbVO;
 import com.leafCat.coin.jsonVO.UpbitVO;
+import com.leafCat.coin.mapper.CoinGapMapper;
 import com.leafCat.coin.mapper.CoinMapper;
+import com.leafCat.coin.vo.CoinGapVO;
 import com.leafCat.coin.vo.CoinVO;
 import com.leafCat.coin.vo.ExchangeVO;
 
@@ -25,6 +25,9 @@ public class CoinService {
 	
 	@Autowired
 	CoinMapper coinMapper;
+	
+	@Autowired
+	CoinGapMapper coinGapMapper;
 	
 	public double getCoinInfo(int marketId, String coinSymbol){
 		double rtnVal = -1 ;
@@ -84,6 +87,10 @@ public class CoinService {
 
 	public List<CoinVO> selectCoinPriceList(CoinVO coinVO) {
 		return coinMapper.selectCoinPriceList(coinVO);
+	}
+	
+	public void insertGapData(CoinGapVO gapVO){
+		coinGapMapper.insertCoinGapData(gapVO);
 	}
 
 }

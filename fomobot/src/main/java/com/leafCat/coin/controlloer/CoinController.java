@@ -27,7 +27,7 @@ public class CoinController {
 	private static Logger logger = Logger.getLogger(CoinController.class);
 
 	
-	String[] testSymbol = {"XVG","EOSDAC","WAX","LOOM","EOS","SALT","ADT"};
+	String[] testSymbol = {"XVG","EOSDAC","WAX","LOOM","ADT","VIB","CND","DMT","BLOCK","GNO","LRC","NMR"};
 	
 	List<Symbol> symbolList = new ArrayList<Symbol>();
 	
@@ -54,22 +54,8 @@ public class CoinController {
 	@Autowired
 	CoinService coinService;
 	
-	@Scheduled(cron="0/5 * * * * ?")
-	public void calCoinGap(){
-		double price_bithumb = coinService.getCoinInfo(2, "EOS");
-		double price_upbit = coinService.getCoinInfo(3, "EOS");
-		
-		double dif = price_bithumb - price_upbit; 
-		
-		System.out.println("빗썸 : " + price_bithumb + " / 업빗 : " + price_upbit );
-		System.out.println("차이 : " + dif );
-	}
-	
-	
-//	@Scheduled(cron="0/3 * * * * ?")
+	@Scheduled(cron="0/10 * * * * ?")
 	public void listingBot(){
-		
-
 		for (int i = 0; i < symbolList.size(); i++) {
 			
 			String thisSymbol = symbolList.get(i).name;
@@ -77,13 +63,12 @@ public class CoinController {
 			if (symbolList.get(i).status == 0 ) {
 				try {
 					coinService.getCoinInfo(3, thisSymbol);
-					System.out.println("0000000" );
-					telegramApiService.sendMSG("upbit " + thisSymbol  + " 원화 API 감지");
+					logger.info(symbolList.get(i).name + " API 감지");
+					telegramApiService.sendMSG("577023742:AAEH0SgepYl3XxRvNudGvlEVoFPzMWAXofg","upbit " + thisSymbol  + " 원화 API 감지", "-1001317239552");
 					
 					symbolList.get(i).status = 1;
 				} catch (HttpClientErrorException e) {
 					continue;
-					// TODO: handle exception
 				}
 			}
 			
@@ -91,10 +76,10 @@ public class CoinController {
 				try {
 					coinService.getCoinInfo(3, thisSymbol);
 				} catch (HttpClientErrorException e) {
-					telegramApiService.sendMSG("upbit " + thisSymbol  + " 원화 API 감지");
+					logger.info(symbolList.get(i).name + " API 삭제됨");
+					telegramApiService.sendMSG("577023742:AAEH0SgepYl3XxRvNudGvlEVoFPzMWAXofg","upbit " + thisSymbol  + " 원화 API 감지", "-1001317239552");
 					symbolList.get(i).status = 0;
 					continue;
-					// TODO: handle exception
 				}
 			}
 		}

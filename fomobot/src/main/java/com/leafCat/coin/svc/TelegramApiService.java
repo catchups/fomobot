@@ -12,9 +12,11 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class TelegramApiService {
 
-	public String sendMSG(String msg) {
+	public String sendMSG(String botId, String msg, String chatId) {
 		
 		String result="";
+		String url = "https://api.telegram.org/bot"+botId+"/sendMessage?chat_id="+ chatId + "&text=" + msg ;
+		
 		// RestTemplate 에 MessageConverter 세팅
 		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
 		converters.add(new FormHttpMessageConverter());
@@ -23,7 +25,9 @@ public class TelegramApiService {
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setMessageConverters(converters);
 		
-		result =  restTemplate.getForObject("https://api.telegram.org/bot577023742:AAEH0SgepYl3XxRvNudGvlEVoFPzMWAXofg/sendMessage?chat_id=-1001317239552&text="+ msg , String.class);
+		//System.out.println(url);
+		
+		result =  restTemplate.getForObject(url, String.class);
 		
 		return result;
 		
